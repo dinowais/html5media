@@ -1,3 +1,6 @@
+/**
+ * Created by owaismushtaq on 18/12/18.
+ */
 /*
 Copyright 2017 Google Inc.
 
@@ -22,8 +25,8 @@ limitations under the License.
 // https://cdn.rawgit.com/Miguelao/demos/master/imagecapture.html
 
 // window.isSecureContext could be used for Chrome
-var isSecureOrigin = location.protocol === 'https:' ||
-location.host === 'localhost';
+// var isSecureOrigin = location.protocol === 'https:' ||
+// location.host === 'localhost';
 // if (!isSecureOrigin) {
 //   alert('getUserMedia() must be run from a secure origin: HTTPS or localhost.' +
 //     '\n\nChanging protocol to HTTPS');
@@ -117,16 +120,25 @@ function getCapabilities() {
 
 // Get an ImageBitmap from the currently selected camera source and
 // display this with a canvas element.
+var canvas = document.getElementById('canvas');
+var context = canvas.getContext('2d');
+var video = document.getElementById('video');
 function grabFrame() {
-  imageCapture.grabFrame().then(function(imageBitmap) {
-    console.log('Grabbed frame:', imageBitmap);
-    canvas.width = imageBitmap.width;
-    canvas.height = imageBitmap.height;
-    canvas.getContext('2d').drawImage(imageBitmap, 0, 0);
-    canvas.classList.remove('hidden');
-  }).catch(function(error) {
-    console.log('grabFrame() error: ', error);
-  });
+    context.drawImage(video, 0, 0, 1200, 800);
+    // canvas.width = imageBitmap.width;
+  //   canvas.height = imageBitmap.height;
+  //   canvas.getContext('2d').drawImage(imageBitmap, 0, 0);
+  //   canvas.classList.remove('hidden');
+
+  // imageCapture.grabFrame().then(function(imageBitmap) {
+  //   console.log('Grabbed frame:', imageBitmap);
+  //   canvas.width = imageBitmap.width;
+  //   canvas.height = imageBitmap.height;
+  //   canvas.getContext('2d').drawImage(imageBitmap, 0, 0);
+  //   canvas.classList.remove('hidden');
+  // }).catch(function(error) {
+  //   console.log('grabFrame() error: ', error);
+  // });
 }
 
 function setZoom() {
@@ -139,23 +151,27 @@ function setZoom() {
 // display this with an img element.
 var lat = document.getElementById("lat");
 var lon = document.getElementById("lon");
-
 function takePhoto() {
-        document.getElementById("myDate").value = new Date().toISOString();
-        imageCapture.takePhoto().then(function(blob) {
-        console.log('Took photo:', blob);
-        img.classList.remove('hidden');
-        img.src = URL.createObjectURL(blob);
-        navigator.geolocation.getCurrentPosition(showPosition);
-        var fd = new FormData();
-        var filename = new Date().toLocaleTimeString()
-        var file = new File([blob], filename+".jpg", { type: "image/jpeg", lastModified: Date.now()});
-        fd.append('file', blob, filename);
-        fd.append('lat',document.getElementById("lat").value);
-        fd.append('lon',document.getElementById("lon").value);
-        fd.append('time',document.getElementById("myDate").value );
-        // document.getElementById("image").src = document.getElementById("image_latest").src
-        var data = $('.ajax-form-change').serialize();
+    document.getElementById("myDate").value = new Date().toISOString();
+    const canvas = document.createElement('canvas');
+    var video = document.getElementById('video');
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    // var context = canvas.getContext('2d');
+    canvas.getContext('2d').drawImage(video, 0, 0);
+    var img = document.querySelector('img');
+    img.src = canvas.toDataURL('image/webp');
+    navigator.geolocation.getCurrentPosition(showPosition);
+    var fd = new FormData();
+    var filename = new Date().toLocaleTimeString()
+    var file = new File([canvas.toDataURL('image/webp')], filename+".jpg", { type: "image/jpeg", lastModified: Date.now() });
+    fd.append('file', file, filename);
+    fd.append('lat',document.getElementById("lat").value);
+    fd.append('lon',document.getElementById("lon").value);
+    fd.append('time',document.getElementById("myDate").value );
+    fd.append('base64',canvas.toDataURL('image/jpeg'))
+    // Other browsers will fall back to image/png
+    var data = $('.ajax-form-change').serialize();
         $.ajax({
             type: 'POST',
             url: 'http://localhost:5000/detection',
@@ -167,29 +183,38 @@ function takePhoto() {
         }).done(function(s) {
                console.log(s);
         });
-      console.log("img:......========>>>>> ",img.src)
-  }).catch(function(error) {
-    console.log('takePhoto() error: ', error);
-  });
+    // img.src = canvas.toDataURL('image/webp');
+  //       imageCapture.takePhoto().then(function(blob) {
+  //       console.log('Took photo:', blob);
+  //       img.classList.remove('hidden');
+  //       img.src = URL.createObjectURL(blob);
+  //       navigator.geolocation.getCurrentPosition(showPosition);
+  //       var fd = new FormData();
+  //       var filename = new Date().toLocaleTimeString()
+  //       var file = new File([blob], filename+".jpg", { type: "image/jpeg", lastModified: Date.now() })
+  //       fd.append('file', blob, filename);
+  //       fd.append('lat',document.getElementById("lat").value);
+  //       fd.append('lon',document.getElementById("lon").value);
+  //       fd.append('time',document.getElementById("myDate").value );
+  //       // document.getElementById("image").src = document.getElementById("image_latest").src
+  //       var data = $('.ajax-form-change').serialize();
+  //       $.ajax({
+  //           type: 'POST',
+  //           url: 'http://localhost:5000/detection',
+  //           data: fd,
+  //           cache: false,
+  //           contentType: false,
+  //           processData: false,
+  //           enctype:"multipart/form-data"
+  //       }).done(function(s) {
+  //              console.log(s);
+  //       });
+  // }).catch(function(error) {
+  //   console.log('takePhoto() error: ', error);
+  // });
 }
 function showPosition(position) {
     console.log(position);
     document.getElementById("lat").value  = position.coords.latitude;
     document.getElementById("lon").value = position.coords.longitude;
 }
-
-// $(document).on("submit", ".ajax-form-change", function (ev) {
-//         ev.preventDefault();
-//         // var action_url = $(ev.target).attr("action");
-//         // var data = $('.ajax-form-change').serialize();
-//         // var email = $('#id_email').val()
-//         // $.ajax({
-//         //     type: "POST",
-//         //     url: action_url,
-//         //     async: false,
-//         //     data: data,
-//         //     success: function (response) {
-//         //     }
-//         // });
-//         // return false;
-//     });
