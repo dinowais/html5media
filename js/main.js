@@ -141,8 +141,8 @@ var lat = document.getElementById("lat");
 var lon = document.getElementById("lon");
 
 function takePhoto() {
-    document.getElementById("myDate").value = new Date().toISOString();
-    imageCapture.takePhoto().then(function(blob) {
+        document.getElementById("myDate").value = new Date().toISOString();
+        imageCapture.takePhoto().then(function(blob) {
         console.log('Took photo:', blob);
         img.classList.remove('hidden');
         img.src = URL.createObjectURL(blob);
